@@ -1,0 +1,1 @@
+# hack-rock-fes-2024-chatgpt-workshop-codespace
