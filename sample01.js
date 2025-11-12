@@ -15,7 +15,7 @@ const openai = new OpenAI({
 async function main() {
 
   // ChatGPT API に実際にアクセス
-  // 基本仕様 : https://platform.openai.com/docs/guides/text-generation
+  // https://platform.openai.com/docs/guides/gpt/chat-completions-api?lang=node.js
   const completion = await openai.chat.completions.create({
     messages: [
       { role: "user", content: "こんにちは!ChatGPTさん!" }  // ユーザーから「こんにちは!ChatGPTさん!」の質問
