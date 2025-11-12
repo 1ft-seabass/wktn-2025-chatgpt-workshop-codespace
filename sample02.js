@@ -29,62 +29,68 @@ async function main() {
   console.log("実際に ChatGPT にお願いするテキスト");
   console.log(promptText);
   
-  // Function calling の設定
-  const functions = [
+  // Tools の設定（新記法）
+  const tools = [
     {
-        "name": "on_command",
-        "description": "「ライトをつけて」とお願いしたときに使います。",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "command": {
-                    "type": "string",
-                    "description": "on が固定値で入ります"
-                }
-            },
-            "required": [
-                "command"
-            ]
+        "type": "function",
+        "function": {
+            "name": "on_command",
+            "description": "「ライトをつけて」とお願いしたときに使います。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "command": {
+                        "type": "string",
+                        "description": "on が固定値で入ります"
+                    }
+                },
+                "required": [
+                    "command"
+                ]
+            }
         }
     },
     {
-        "name": "off_command",
-        "description": "「ライトを消して」とお願いしたときに使います。",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "command": {
-                    "type": "string",
-                    "description": "off が固定値で入ります"
-                }
-            },
-            "required": [
-                "command"
-            ]
+        "type": "function",
+        "function": {
+            "name": "off_command",
+            "description": "「ライトを消して」とお願いしたときに使います。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "command": {
+                        "type": "string",
+                        "description": "off が固定値で入ります"
+                    }
+                },
+                "required": [
+                    "command"
+                ]
+            }
         }
     }
   ];
 
-
-  // ChatGPT API に実際にアクセス
-  // 基本仕様 : https://platform.openai.com/docs/guides/text-generation
-  // function calling : https://platform.openai.com/docs/guides/function-calling
+  // ChatGPT API に実際にアクセス（新記法）
+  // https://platform.openai.com/docs/guides/gpt/chat-completions-api?lang=node.js
+  // https://platform.openai.com/docs/guides/gpt/function-calling
   const completion = await openai.chat.completions.create({
     messages: [
       // 質問内容
       { role: "user", content: promptText }
     ],
-    // Function calling
+    // Tools を使うためにモデルは gpt-4o を使います。
     model: "gpt-4o",
-    functions:functions,
-    function_call: "auto"
+    tools: tools,
+    tool_choice: "auto"
   });
 
-  // function calling の結果取得
-  if (completion.choices[0].message.function_call) {
-    const functionData = JSON.parse(completion.choices[0].message.function_call.arguments);
+  // tool calls の結果取得（新記法）
+  if (completion.choices[0].message.tool_calls) {
+    const toolCall = completion.choices[0].message.tool_calls[0];
+    const functionData = JSON.parse(toolCall.function.arguments);
 
-    console.log("function calling の結果取得");
+    console.log("tool calls の結果取得");
     console.log(functionData);
   }
 

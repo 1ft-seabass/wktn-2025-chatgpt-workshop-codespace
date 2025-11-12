@@ -28,96 +28,103 @@ async function main() {
   console.log("実際に ChatGPT にお願いするテキスト");
   console.log(promptText);
   
-  // Function calling の設定
-  const functions = [
+  // Tools の設定（新記法）
+  const tools = [
     {
-        "name": "rgb_json",
-        "description": "色名から RGB 値の情報を得られた場合",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "type": {
-                    "type": "string",
-                    "description": "led という値が固定値を入力されます"
+        "type": "function",
+        "function": {
+            "name": "rgb_json",
+            "description": "色名から RGB 値の情報を得られた場合",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "description": "led という値が固定値を入力されます"
+                    },
+                    "result": {
+                        "type": "boolean",
+                        "description": "色名が RGB値 で認識されたので true は認識が入ります。"
+                    },
+                    "r": {
+                        "type": "number",
+                        "description": "色名から RGB 値の情報を得たときの R 値"
+                    },
+                    "g": {
+                        "type": "number",
+                        "description": "色名から RGB 値の情報を得たときの G 値"
+                    },
+                    "b": {
+                        "type": "number",
+                        "description": "色名から RGB 値の情報を得たときの B 値"
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "色名がRGB値に認識されたときの追加の説明。"
+                    }
                 },
-                "result": {
-                    "type": "boolean",
-                    "description": "色名が RGB値 で認識されたので true は認識が入ります。"
-                },
-                "r": {
-                    "type": "number",
-                    "description": "色名から RGB 値の情報を得たときの R 値"
-                },
-                "g": {
-                    "type": "number",
-                    "description": "色名から RGB 値の情報を得たときの G 値"
-                },
-                "b": {
-                    "type": "number",
-                    "description": "色名から RGB 値の情報を得たときの B 値"
-                },
-                "message": {
-                    "type": "string",
-                    "description": "色名がRGB値に認識されたときの追加の説明。"
-                }
-            },
-            "required": [
-                "type",
-                "result",
-                "r",
-                "g",
-                "b",
-                "message"
-            ]
+                "required": [
+                    "type",
+                    "result",
+                    "r",
+                    "g",
+                    "b",
+                    "message"
+                ]
+            }
         }
     },
     {
-        "name": "rgb_json_not_found",
-        "description": "色名から RGB 値の情報を得られなかった場合",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "type": {
-                    "type": "string",
-                    "description": "led という値が固定値を入力されます"
+        "type": "function",
+        "function": {
+            "name": "rgb_json_not_found",
+            "description": "色名から RGB 値の情報を得られなかった場合",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "description": "led という値が固定値を入力されます"
+                    },
+                    "result": {
+                        "type": "boolean",
+                        "description": "色名が RGB値 で認識されなかったので false が入ります。"
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "色名が RGB 値に認識されなかったときの説明。あるいは、色名がRGB値に認識されなかったときの説明。色名の例外は「色名が認識されない例外処理です」と説明します。"
+                    }
                 },
-                "result": {
-                    "type": "boolean",
-                    "description": "色名が RGB値 で認識されなかったので false が入ります。"
-                },
-                "message": {
-                    "type": "string",
-                    "description": "色名が RGB 値に認識されなかったときの説明。あるいは、色名がRGB値に認識されなかったときの説明。色名の例外は「色名が認識されない例外処理です」と説明します。"
-                }
-            },
-            "required": [
-                "type",
-                "result",
-                "message"
-            ]
+                "required": [
+                    "type",
+                    "result",
+                    "message"
+                ]
+            }
         }
     }
 ];
 
-  // ChatGPT API に実際にアクセス
-  // 基本仕様 : https://platform.openai.com/docs/guides/text-generation
-  // function calling : https://platform.openai.com/docs/guides/function-calling
+  // ChatGPT API に実際にアクセス（新記法）
+  // https://platform.openai.com/docs/guides/gpt/chat-completions-api?lang=node.js
+  // https://platform.openai.com/docs/guides/gpt/function-calling
   const completion = await openai.chat.completions.create({
     messages: [
       // 質問内容
       { role: "user", content: promptText }
     ],
-    // Function calling
+    // Tools を使うためにモデルは gpt-4o を使います。
     model: "gpt-4o",
-    functions:functions,
-    function_call: "auto"
+    tools: tools,
+    tool_choice: "auto"
   });
 
-  // function calling の結果取得
-  if (completion.choices[0].message.function_call) {
-    const functionData = JSON.parse(completion.choices[0].message.function_call.arguments);
+  // tool calls の結果取得（新記法）
+  if (completion.choices[0].message.tool_calls) {
+    const toolCall = completion.choices[0].message.tool_calls[0];
+    const functionData = JSON.parse(toolCall.function.arguments);
 
-    console.log("function calling の結果取得");
+    console.log("tool calls の結果取得");
     console.log(functionData);
   }
 
