@@ -1,0 +1,23 @@
+{
+  "name": "mcp-example",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Model Context Protocol (MCP) の基礎体験サンプル",
+  "scripts": {
+    "server": "tsx mcp-server.ts",
+    "execute": "tsx mcp-execute.ts",
+    "client": "tsx mcp-client.ts"
+  },
+  "keywords": ["mcp", "chatgpt", "ai", "typescript"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.6.0",
+    "openai": "^4.12.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0"
+  }
+}
